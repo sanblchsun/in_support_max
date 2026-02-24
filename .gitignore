@@ -1,0 +1,11 @@
+﻿venv/
+documents/
+db.db
+*.ini
+*.ini_
+.env
+test.py
+*.pyc
+.idea/
+__pycache__/
+.idea/

@@ -1,0 +1,9 @@
+aiogram>=2.11.2,<3.0
+environs
+emoji>=1.7.0
+wget>=3.2
+beautifulsoup4
+telebot
+aiomysql==0.2.0
+aiosmtplib
+aiofiles
