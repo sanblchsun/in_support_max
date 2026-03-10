@@ -1,7 +1,9 @@
-from aiogram import Bot, Dispatcher, types
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from maxapi import Bot, Dispatcher
 from data import config
+from maxapi.enums.parse_mode import ParseMode
+from middlewares.fsm import FSMMiddleware
 
-bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
-storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
+
+bot = Bot(token=config.BOT_TOKEN, parse_mode=ParseMode.HTML)
+dp = Dispatcher()
+dp.middleware(FSMMiddleware())
