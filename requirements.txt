@@ -7,5 +7,5 @@ telebot
 aiomysql==0.2.0
 aiosmtplib
 aiofiles
-aiogram>=2.11.2,<3.0
-redis==7.3.0
+maxapi==0.9.16
+loguru
