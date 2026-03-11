@@ -6,4 +6,4 @@ from middlewares.fsm import FSMMiddleware
 
 bot = Bot(token=config.BOT_TOKEN, parse_mode=ParseMode.HTML)
 dp = Dispatcher()
-dp.middleware(FSMMiddleware())
+dp.middlewares(FSMMiddleware())  # type: ignore

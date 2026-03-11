@@ -3,7 +3,7 @@ from base.sqlighter import SQLighter
 from loader import dp, bot
 from states.context import FSMContext
 from states.user_state import UserState
-from keyboards.inline.buttons import request_delete_with_data, request_or_reject
+from keyboards.inline.buttons import request_delete_with_data
 from maxapi.types import Command, InputMedia, Attachment, MessageCreated
 
 
@@ -39,7 +39,6 @@ async def bot_start(event: MessageCreated, state: FSMContext):
 
     i = random.randint(1, 5)
     if bool(len(list_data_client)):
-        keyboard = request_delete_with_data()
         try:
             if chat_id is None:
                 return
@@ -53,9 +52,10 @@ async def bot_start(event: MessageCreated, state: FSMContext):
             f"Организация: {list_data_client[0][2]}\n"
             f"e-mail: {list_data_client[0][3]}\n"
             f"телефон: {list_data_client[0][4]}",
-            reply_markup=keyboard,
+            attachments=[request_delete_with_data()],
         )
-        await state.update_data(message_for_edit=msg.message_id)
+        await state.add_message(msg)
+
         await event.message.answer("Расскажите - что у вас случилось?")
         await state.set_state(UserState.DESCRIPTION)
         await state.update_data(full_name=list_data_client[0][1])
@@ -70,13 +70,11 @@ async def bot_start(event: MessageCreated, state: FSMContext):
             await send_photo(chat_id, f"img/supp{i}.jpeg")
         except FileNotFoundError:
             pass
-        keyboard = request_or_reject()
         await event.message.answer(
             """Уважаемый пользователь, вас приветствует ТГ-бот ИИС!
 Прошу Вас ответить на несколько вопросов,
 которые мне необходимо задать для отправки
 Вашей заявки в техническую поддержку.""",
-            reply_markup=keyboard,
+            attachments=[request_delete_with_data()],
         )
         await state.set_state(UserState.BEGINNING)
-        await state.update_data(message_for_edit=msg.message_id)
