@@ -1,10 +1,10 @@
-from aiogram import types
+from maxapi.types import BotCommand
 
 
-async def set_default_commands(dp):
-    await dp.bot.set_my_commands(
+async def set_default_commands(bot) -> None:
+    await bot.set_my_commands(
         [
-            types.BotCommand("start", "Создать заявку"),
-            types.BotCommand("cancel", "Отменить заявку"),
+            BotCommand(name="start", description="Создать заявку"),
+            BotCommand(name="cancel", description="Отменить заявку"),
         ]
     )

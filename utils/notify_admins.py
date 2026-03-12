@@ -1,37 +1,37 @@
-import logging
-from aiogram import types
-from aiogram import Dispatcher
-from aiogram.utils.exceptions import ChatNotFound
-
 from base.sqlighter import SQLighter
 from data.config import ADMINS, CHAT_ID
+from loguru import logger
+
 
 def is_admin_get_firms(usr_id):
     if usr_id in ADMINS:
-        sql_object  = SQLighter("base/db.db")
+        sql_object = SQLighter("base/db.db")
         list_filtr = sql_object.get_admins_firms(usr_id)
         if list_filtr:
             res = list_filtr[0][0].split(",")
             return res
     return False
 
-async def on_startup_notify(dp: Dispatcher):
+
+async def on_startup_notify(bot):
     for admin in ADMINS:
         try:
-            await dp.bot.send_message(admin, "Бот Запущен")
-        except ChatNotFound as err:
-            logging.exception(f'Ошибка!!!!!!!{err}')
+            await bot.send_message(admin, "Бот Запущен")
+        except Exception as err:
+            logger.error(f"""Ошибка сообщения
+                         {err}""")
 
 
-
-async def send_messege_to_chat(dp: Dispatcher,
-                               full_name,
-                               e_mail,
-                               firma,
-                               cont_telefon,
-                               description,
-                               priority,
-                               number_from_1c=''):
+async def send_messege_to_chat(
+    bot,
+    full_name,
+    e_mail,
+    firma,
+    cont_telefon,
+    description,
+    priority,
+    number_from_1c="",
+):
 
     # html = '<b>жирный</b>, <strong>жирный</strong>\
     #         <span class="tg-spoiler">скрытый текст</span>, <tg-spoiler>скрытый текст</tg-spoiler>\
@@ -71,7 +71,4 @@ async def send_messege_to_chat(dp: Dispatcher,
            <i><b>Приоритет заявки: </b></i>
 <code>{priority}</code>"""
 
-    await dp.bot.send_message(chat_id=CHAT_ID, text=html, parse_mode=types.ParseMode.HTML)
-    # logging.info(f'html: send, pattern_tmp: {pattern_tmp}, firma_tmp: {firma_tmp}, admin: {admin}, ADMINS: {ADMINS}')
-
-
+    await bot.send_message(chat_id=CHAT_ID, text=html)
