@@ -1,8 +1,7 @@
-# states/storage.py
-
+# states/user_state.py
 """
 {
-    user_id: {
+    (chat_id, user_id): {
         "state": UserState.ADD_FOR_FIRM,
         "data": {...},
         "messages": ["mid1", "mid2"],
@@ -11,4 +10,4 @@
 }
 """
 
-storage: dict[int, dict] = {}
+storage: dict[tuple[int, int], dict] = {}

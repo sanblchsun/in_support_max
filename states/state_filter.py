@@ -1,4 +1,4 @@
-from states.context import storage
+from states.storage import storage
 
 
 class StateFilter:
@@ -8,9 +8,13 @@ class StateFilter:
 
     async def __call__(self, event, data):
 
+        chat_id = event.message.recipient.chat_id
         user_id = event.message.sender.user_id
 
-        user = storage.get(user_id)
+        if chat_id is None:
+            return False
+
+        user = storage.get((chat_id, user_id))
 
         if not user:
             return False
