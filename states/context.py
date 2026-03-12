@@ -66,7 +66,7 @@ class FSMContext:
 
     async def add_message(self, message):
 
-        mid = message.model_dump().get("mid")
+        mid = message.model_dump().get('message').get('body').get('mid')
 
         if mid:
             storage[self.key]["messages"].append(mid)
