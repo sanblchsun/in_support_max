@@ -9,7 +9,7 @@ from states.user_state import UserState
 from keyboards.inline.buttons import request_delete_with_data
 
 # 1. FIX: Import InputMediaType from the library's enums
-from maxapi.types import Attachment, Command, MessageCreated
+from maxapi.types import Attachment, BotStarted, Command, MessageCreated
 from maxapi.types import InputMedia
 
 
@@ -98,3 +98,11 @@ async def bot_start(event: MessageCreated, state: FSMContext):
 
         await state.add_message(msg1)
         await state.set_state(UserState.BEGINNING)
+
+
+@dp.bot_started()
+async def bot_started(event: BotStarted):
+    await event.bot.send_message( # type: ignore
+        chat_id=event.chat_id,
+        text='Привет! Отправь мне /start'
+    )

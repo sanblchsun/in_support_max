@@ -1,4 +1,6 @@
 from maxapi.types import (
+    LinkButton,
+    MessageButton,
     MessageCreated,
     BotStarted,
     MessageCallback,
@@ -9,26 +11,41 @@ from maxapi.types import (
     BotCommand,
 )
 from maxapi.enums.intent import Intent
+from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
 
 
 def request_delete_with_data() -> Attachment:
-    buttons = ButtonsPayload(
-        buttons=[
-            [
-                CallbackButton(
-                    text="отменить заявку и стереть свои данные",
-                    payload="del_user_data",
-                    intent=Intent.DEFAULT,
-                ),
-                CallbackButton(
-                    text="Отмена заявки",
-                    payload="reject_request",
-                    intent=Intent.DEFAULT,
-                ),
-            ]
-        ]
+    # buttons = ButtonsPayload(
+    #     buttons=[
+    #         [
+    #             CallbackButton(
+    #                 text="отменить заявку и стереть свои данные",
+    #                 payload="del_user_data",
+    #                 intent=Intent.DEFAULT,
+    #             ),
+    #             CallbackButton(
+    #                 text="Отмена заявки",
+    #                 payload="reject_request",
+    #                 intent=Intent.DEFAULT,
+    #             ),
+    #         ]
+    #     ]
+    # )
+    buttons = InlineKeyboardBuilder()
+    buttons.row(
+        CallbackButton(
+            text="отменить заявку и стереть свои данные",
+            payload="del_user_data",
+        ),
+        CallbackButton(
+            text="Отмена заявки",
+            payload="reject_request",
+        ),
+        MessageButton(text="/start")
     )
-    return Attachment(type="inline_keyboard", payload=buttons)  # type: ignore
+
+    # return Attachment(type="inline_keyboard", payload=buttons)  # type: ignore
+    return buttons.as_markup()
 
 
 # def attach_yes_no():

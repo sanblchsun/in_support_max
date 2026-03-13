@@ -1,3 +1,4 @@
+# states/context.py
 import asyncio
 from states.storage import storage
 from states.timeout_tasks import timeout_tasks
@@ -66,7 +67,7 @@ class FSMContext:
 
     async def add_message(self, message):
 
-        mid = message.model_dump().get('message').get('body').get('mid')
+        mid = message.model_dump().get("message").get("body").get("mid")
 
         if mid:
             storage[self.key]["messages"].append(mid)

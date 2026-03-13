@@ -24,6 +24,9 @@ from maxapi.types import (
 )
 from maxapi.enums.intent import Intent
 from maxapi.enums.parse_mode import ParseMode
+from maxapi.utils import commands
+
+from data import config
 
 # Загружаем конфигурацию
 load_dotenv()
@@ -243,12 +246,8 @@ async def handle_text(event: MessageCreated):
 async def main():
     logger.info("Запуск бота...")
 
-    # # Регистрация команд
-    # await bot.set_my_commands(
-    #     BotCommand(name="start", description="Главное меню"),
-    #     BotCommand(name="help", description="Справка"),
-    #     BotCommand(name="support", description="Поддержка"),
-    # )
+    # Регистрация команд
+    # await bot.set_my_commands(BotCommand(name="start", description="Главное меню"))
 
     await bot.delete_webhook()
     logger.info("Бот запущен")

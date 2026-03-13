@@ -3,4 +3,4 @@ from . import start
 # from . import cancel
 # from . import support
 # from . import attach
-# from . import echo
+from . import echo
