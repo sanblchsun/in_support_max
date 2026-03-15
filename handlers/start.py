@@ -25,6 +25,6 @@ async def bot_start(event: MessageCreated, state: FSMContext):
 
     state = FSMContext(chat_id, user_id)  # type: ignore
 
-    await state.set_state(Form.ONE)
+    await state.set_state(Form.BEGINNING)
 
-    logger.debug("мы установили state: Form.ONE")
+    logger.debug("мы установили state: Form.BEGINNING")
