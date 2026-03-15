@@ -20,11 +20,14 @@ async def send_photo(chat_id: int, path: str):
 @dp.message_created(Command("start"))
 async def bot_start(event: MessageCreated, state: FSMContext):
 
-    chat_id = event.message.recipient.chat_id
-    user_id = event.message.sender.user_id  # type: ignore
-
-    state = FSMContext(chat_id, user_id)  # type: ignore
-
     await state.set_state(Form.BEGINNING)
 
     logger.debug("мы установили state: Form.BEGINNING")
+
+    await event.message.answer(
+        "Начат процесс подачи заявки. "
+        "Если он не будет завершён за 30 минут, "
+        "то произойдет автоматическая отмена."
+    )
+
+    await state.set_timeout(10)

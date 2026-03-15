@@ -1,3 +1,4 @@
+# keyboards/inline/buttons.py
 from maxapi.types import (
     LinkButton,
     MessageButton,

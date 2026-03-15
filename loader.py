@@ -9,4 +9,4 @@ bot = Bot(token=config.BOT_TOKEN, parse_mode=ParseMode.HTML)
 
 dp = Dispatcher()
 
-dp.middlewares.append(FSMMiddleware())
+dp.middlewares.append(FSMMiddleware(bot=bot))
