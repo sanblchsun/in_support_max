@@ -1,10 +1,3 @@
 environs
-emoji>=1.7.0
-wget>=3.2
-beautifulsoup4
-telebot
-aiomysql==0.2.0
-aiosmtplib
-aiofiles
 maxapi==0.9.16
 loguru

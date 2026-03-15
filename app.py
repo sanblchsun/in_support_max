@@ -1,12 +1,11 @@
 # app.py
 import asyncio
 from loguru import logger
+from maxapi.types import BotCommand
 from loader import dp, bot
 
 # строку не удалять, она работает
-import middlewares, handlers
-from utils.notify_admins import on_startup_notify
-from utils.set_bot_commands import set_default_commands
+import middlewares, handlers, filters
 
 
 async def on_startup():
