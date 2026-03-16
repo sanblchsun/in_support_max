@@ -1,9 +1,7 @@
-# handlers/fsm_entry.py
-
 from loader import dp
 from maxapi.types import MessageCreated
 from states.context import FSMContext
-from fsm_router import handlers, any_state_handlers, no_state_handlers
+from filters.fsm_router import handlers, any_state_handlers, no_state_handlers
 
 
 @dp.message_created()

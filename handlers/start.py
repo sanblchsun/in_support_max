@@ -31,7 +31,7 @@ async def bot_start(event: MessageCreated, state: FSMContext):
     chat_id = event.message.recipient.chat_id
     user_id = event.from_user.user_id  # type: ignore
 
-    await state.set_timeout(10)
+    await state.set_timeout(100)
 
     await state.update_data(
         dist_url_and_namefile={}, list_photo_path=[], send_yes_no=True

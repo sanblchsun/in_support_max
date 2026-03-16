@@ -1,5 +1,3 @@
-# fsm_router.py
-
 handlers = {}
 any_state_handlers = []
 no_state_handlers = []
