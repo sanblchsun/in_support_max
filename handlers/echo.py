@@ -22,7 +22,9 @@ async def any_state(event: MessageCreated, context: MemoryContext):
     state_current = await context.get_state()
     msg = event
     if state_current is Form.full_name:
-        msg = await event.message.answer("Вложение ошибочное. Введите ваше Имя и Фамилию")
+        msg = await event.message.answer(
+            "Вложение ошибочное. Введите ваше Имя и Фамилию"
+        )
     elif state_current is Form.telefon:
         msg = await event.message.answer("Вложение ошибочное. Введите ваш телефон")
     elif state_current is Form.e_mail:
