@@ -29,7 +29,7 @@ async def _timeout(event, context, bot, key, seconds):
     except Exception:
         pass
 
-    await delete_messages(bot, event)
+    await delete_messages(bot, context)
     await context.clear()
 
     timeout_tasks.pop(key, None)

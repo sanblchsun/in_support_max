@@ -48,7 +48,7 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
     # отправляем фото
     try:
         msg0 = await send_photo(chat_id, f"img/supp{random.randint(1,5)}.jpeg")  # type: ignore
-        await add_message(event, msg0)
+        await add_message(context, msg0)
     except FileNotFoundError:
         ...
 
@@ -67,7 +67,7 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
             attachments=[request_delete_with_data()],
         )
 
-        await add_message(event, msg)
+        await add_message(context, msg)
 
         await event.message.answer("Расскажите - что у вас случилось?")
 
@@ -94,5 +94,5 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
             attachments=[request_or_reject()],
         )
 
-        await add_message(event, msg1)
+        await add_message(context, msg1)
         await context.set_state(Form.beginning)

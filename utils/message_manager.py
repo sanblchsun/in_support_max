@@ -1,35 +1,35 @@
 # utils/message_manager.py
 import asyncio
+from loguru import logger
+from maxapi.context import MemoryContext
 
 
-messages: dict[tuple[int, int], list[str]] = {}
+async def add_message(context: MemoryContext, message):
+    try:
+        data = await context.get_data()
+
+        mid = message.model_dump().get("message").get("body").get("mid")
+
+        if mid:
+            messages = data.get("messages", [])
+            messages.append(mid)
+            await context.update_data(messages=messages)
+    except Exception as e:
+        logger.error(f"add messsage error: {e}")
 
 
-def get_key(event):
-    return (event.message.recipient.chat_id, event.message.sender.user_id)
+async def delete_messages(bot, context):
 
+    data = await context.get_data()
+    messages = data.get("messages", [])
 
-async def add_message(event, message):
-
-    key = get_key(event)
-
-    mid = message.model_dump().get("message").get("body").get("mid")
-
-    if mid:
-        messages.setdefault(key, []).append(mid)
-
-
-async def delete_messages(bot, event):
-
-    key = get_key(event)
-
-    for mid in messages.get(key, []):
+    for mid in messages:
         try:
             await bot.delete_message(message_id=mid)
         except Exception:
             pass
 
-    messages.pop(key, None)
+    await context.update_data(messages=[])
 
 
 async def delete_later(bot, msg, time_second: int):
