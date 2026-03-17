@@ -33,7 +33,7 @@ def request_delete_with_data() -> Attachment:
     #     ]
     # )
     buttons = InlineKeyboardBuilder()
-    buttons.row(
+    buttons.add(
         CallbackButton(
             text="отменить заявку и стереть свои данные",
             payload="del_user_data",
@@ -42,51 +42,101 @@ def request_delete_with_data() -> Attachment:
             text="Отмена заявки",
             payload="reject_request",
         ),
-        MessageButton(text="/start")
     )
 
     # return Attachment(type="inline_keyboard", payload=buttons)  # type: ignore
     return buttons.as_markup()
 
 
-# def attach_yes_no():
-#     no_btn = InlineKeyboardButton("НЕТ", callback_data="attach_no")
-#     yes_btn = InlineKeyboardButton("ДА", callback_data="attach_yes")
-#     return InlineKeyboardMarkup().add(no_btn, yes_btn)
+def attach_yes_no():
+    buttons = InlineKeyboardBuilder()
+    buttons.row(
+        CallbackButton(
+            text="НЕТ",
+            payload="attach_no",
+        ),
+        CallbackButton(
+            text="ДА",
+            payload="attach_yes",
+        ),
+    )
+    return buttons.as_markup()
 
 
-# def send_request_yes_no():
-#     no_btn = InlineKeyboardButton("НЕТ", callback_data="send_no")
-#     yes_btn = InlineKeyboardButton(" ДА", callback_data="send_yes")
-#     return InlineKeyboardMarkup().add(no_btn, yes_btn)
+def send_request_yes_no():
+    buttons = InlineKeyboardBuilder()
+    buttons.row(
+        CallbackButton(
+            text="НЕТ",
+            payload="send_no",
+        ),
+        CallbackButton(
+            text="ДА",
+            payload="send_yes",
+        ),
+    )
+    return buttons.as_markup()
 
 
-# def request_or_reject():
-#     rqsr_btn = InlineKeyboardButton('Согласиться', callback_data='create_request')
-#     del_btn = InlineKeyboardButton("Отказаться", callback_data="del_current_request")
-#     return InlineKeyboardMarkup().add(rqsr_btn, del_btn)
+def request_or_reject() -> Attachment:
+    buttons = InlineKeyboardBuilder()
+    buttons.row(
+        CallbackButton(
+            text="Согласиться",
+            payload="create_request",
+        ),
+        CallbackButton(
+            text="Отказаться",
+            payload="del_current_request",
+        ),
+    )
+    return buttons.as_markup()
 
 
-# def reject_request():
-#     del_btn = InlineKeyboardButton("Отмена заявки", callback_data="reject_request")
-#     return InlineKeyboardMarkup().add(del_btn)
+def reject_request():
+    buttons = InlineKeyboardBuilder()
+    buttons.row(
+        CallbackButton(
+            text="Отмена заявки",
+            payload="reject_request",
+        ),
+    )
+    return buttons.as_markup()
 
-# def save_person_data():
-#     no_btn = InlineKeyboardButton("НЕТ", callback_data="save_no")
-#     yes_btn = InlineKeyboardButton("ДА", callback_data="save_yes")
-#     return InlineKeyboardMarkup().add(yes_btn, no_btn)
+
+def save_person_data():
+    buttons = InlineKeyboardBuilder()
+    buttons.row(
+        CallbackButton(
+            text="НЕТ",
+            payload="save_no",
+        ),
+        CallbackButton(
+            text="ДА",
+            payload="save_yes",
+        ),
+    )
+    return buttons.as_markup()
 
 
-# def buttons_priority():
-#     low_btn = InlineKeyboardButton("Низкий", callback_data="low_btn_press")
-#     medium_btn = InlineKeyboardButton("средний", callback_data="medium_btn_press")
-#     high_btn = InlineKeyboardButton("высокий", callback_data="high_btn_press")
-#     critical_btn = InlineKeyboardButton("критический", callback_data="critical_btn_press")
-#     return InlineKeyboardMarkup().add(low_btn).\
-#         add(medium_btn).\
-#         add(high_btn).\
-#         add(critical_btn)
-
-# def btn_get_status():
-#     btn = InlineKeyboardButton("Узнайте статус заявки", callback_data='btn_get_status')
-#     return InlineKeyboardMarkup().add(btn)
+def buttons_priority():
+    buttons = InlineKeyboardBuilder()
+    buttons.add(
+        CallbackButton(
+            text="Низкий",
+            payload="low_btn_press",
+        ),
+        CallbackButton(
+            text="средний",
+            payload="medium_btn_press",
+        ),
+        CallbackButton(
+            text="высокий",
+            payload="high_btn_press",
+        ),
+        CallbackButton(
+            text="критический",
+            payload="critical_btn_press",
+        ),
+    )
+    return buttons.as_markup()

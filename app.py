@@ -5,7 +5,7 @@ from maxapi.types import BotCommand
 from loader import dp, bot
 
 # строку не удалять, она работает
-import middlewares, handlers, filters
+import handlers
 
 
 async def on_startup():

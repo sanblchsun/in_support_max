@@ -1,11 +1,14 @@
 # handlers/start.py
 import random
 
+from maxapi.context import MemoryContext
+
 from base.sqlighter import SQLighter
 from loader import dp, bot
-from states.context import FSMContext
-from keyboards.inline.buttons import request_delete_with_data
-from maxapi.types import Attachment, BotStarted, Command, MessageCreated
+from utils.timeout_manager import set_timeout
+from utils.message_manager import add_message
+from keyboards.inline.buttons import request_delete_with_data, request_or_reject
+from maxapi.types import Command, MessageCreated
 from maxapi.types import InputMedia
 from loguru import logger
 
@@ -18,9 +21,11 @@ async def send_photo(chat_id: int, path: str):
 
 
 @dp.message_created(Command("start"))
-async def bot_start(event: MessageCreated, state: FSMContext):
+async def bot_start(event: MessageCreated, context: MemoryContext):
 
-    await state.set_state(Form.BEGINNING)
+    await context.clear()
+
+    await context.set_state(Form.beginning)
 
     await event.message.answer(
         "Начат процесс подачи заявки. "
@@ -31,9 +36,9 @@ async def bot_start(event: MessageCreated, state: FSMContext):
     chat_id = event.message.recipient.chat_id
     user_id = event.from_user.user_id  # type: ignore
 
-    await state.set_timeout(100)
+    await set_timeout(event, context, bot, 100)
 
-    await state.update_data(
+    await context.update_data(
         dist_url_and_namefile={}, list_photo_path=[], send_yes_no=True
     )
 
@@ -43,7 +48,7 @@ async def bot_start(event: MessageCreated, state: FSMContext):
     # отправляем фото
     try:
         msg0 = await send_photo(chat_id, f"img/supp{random.randint(1,5)}.jpeg")  # type: ignore
-        await state.add_message(msg0)
+        await add_message(event, msg0)
     except FileNotFoundError:
         ...
 
@@ -62,13 +67,13 @@ async def bot_start(event: MessageCreated, state: FSMContext):
             attachments=[request_delete_with_data()],
         )
 
-        await state.add_message(msg)
+        await add_message(event, msg)
 
         await event.message.answer("Расскажите - что у вас случилось?")
 
-        await state.set_state(Form.DESCRIPTION)
+        await context.set_state(Form.description)
 
-        await state.update_data(
+        await context.update_data(
             full_name=c[1],
             firma=c[2],
             e_mail=c[3],
@@ -86,8 +91,8 @@ async def bot_start(event: MessageCreated, state: FSMContext):
 Прошу Вас ответить на несколько вопросов,
 которые мне необходимо задать для отправки
 Вашей заявки в техническую поддержку.""",
-            attachments=[request_delete_with_data()],
+            attachments=[request_or_reject()],
         )
 
-        await state.add_message(msg1)
-        await state.set_state(Form.BEGINNING)
+        await add_message(event, msg1)
+        await context.set_state(Form.beginning)

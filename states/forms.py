@@ -1,22 +1,24 @@
-# states/forms.py
-class Form:
-    BEGINNING = "beginning"
-    FULL_NAME = "full_name"
-    TELEFON = "telefon"
-    EMAIL = "email"
-    FIRMA = "firma"
-    YES_NO_SAVE = "yes_no_save"
-    INSERT_IN_BASE = "insert_in_base"
-    DESCRIPTION = "description"
-    PRIORITY = "priority"
-    ATTACH = "attach"
-    ATTACH_YES = "attach_yes"
-    ATTACH_END = "attach_end"
-    END_FORM = "end_form"
-    SEND_REQUEST = "send_request"
-    ADD_FOR_FIRM = "add_for_firm"
-    UPDATE_FOR_FIRM = "update_for_firm"
-    MESSAGE_FOR_EDIT = "message_for_edit"
-    ERROR = "error"
-    ID_SAVE = "id_save"
-    WAITING = "waiting"
+from maxapi.context import State, StatesGroup
+
+
+class Form(StatesGroup):
+    beginning = State()
+    full_name = State()
+    telefon = State()
+    e_mail = State()
+    firma = State()
+    yes_no_save = State()
+    insert_in_base = State()
+    description = State()
+    priority = State()
+    attach = State()
+    attach_yes = State()
+    attach_end = State()
+    end_form = State()
+    send_request = State()
+    add_for_firm = State()
+    update_for_firm = State()
+    message_for_edit = State()
+    error = State()
+    id_save = State()
+    waiting = State()

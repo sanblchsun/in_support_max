@@ -1,34 +1,35 @@
 # handlers/echo.py
 import asyncio
-
-from filters.fsm_router import state_handler
+from maxapi import F
+from maxapi.context import MemoryContext
 from states.forms import Form
 from loader import dp, bot
 from loguru import logger
-from utils.message import delete_later
+from utils.message_manager import delete_later
 
 
 # Эхо хендлер, куда летят текстовые сообщения, в стадии заявки
-@state_handler(
-    Form.FULL_NAME,
-    Form.TELEFON,
-    Form.EMAIL,
-    Form.FIRMA,
-    Form.BEGINNING,
-    Form.ATTACH,
-    Form.PRIORITY,
-    Form.SEND_REQUEST,
+@dp.message_created(
+    F.message.body.text,
+    Form.full_name,
+    Form.telefon,
+    Form.e_mail,
+    Form.firma,
+    Form.beginning,
+    Form.attach,
+    Form.attach,
+    Form.send_request,
 )
-async def any_state(event, state):
+async def any_state(event, context: MemoryContext):
 
-    state_current = await state.get_state()
-    if state_current == "full_name":
+    state_current = await context.get_state()
+    if state_current is Form.full_name:
         await event.message.answer("Введите ваше Имя и Фамилию")
-    elif state_current == "telefon":
+    elif state_current is Form.telefon:
         await event.message.answer("Введите ваш телефон")
-    elif state_current == "email":
+    elif state_current is Form.e_mail:
         await event.message.answer("Введите ваш e-mail")
-    elif state_current == "firma":
+    elif state_current == Form.firma:
         await event.message.delete()
         msg = await event.message.answer(
             "Вы все еще на стадии заполнения заявки. \n\n"
@@ -36,8 +37,8 @@ async def any_state(event, state):
             "или \n"
             "для отмены заявки нажмите на ссылку /cancel"
         )
-        asyncio.create_task(delete_later(msg=msg, time_second=3))
-    elif state_current == "beginning":
+        asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=3))
+    elif state_current is Form.beginning:
         await event.message.delete()
         msg = await event.message.answer(
             "Вы все еще на стадии заполнения заявки. \n\n"
@@ -45,12 +46,16 @@ async def any_state(event, state):
             "или \n"
             "для отмены заявки нажмите на ссылку /cancel"
         )
-        asyncio.create_task(delete_later(msg=msg, time_second=3))
+        asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=3))
+    else:
+        logger.debug(
+            f"в any_state не обработанное сообщение. Состоняе {state_current} тип {type(state_current)}"
+        )
 
 
 # Эхо хендлер, куда летят ВСЕ сообщения, без стадии заявка
-@state_handler(None)
-async def no_state(event, state):
+@dp.message_created()
+async def no_state(event, context: MemoryContext):
 
     mid = event.model_dump().get("message").get("body").get("mid")
     try:
@@ -63,4 +68,4 @@ async def no_state(event, state):
     Или отмените активную заявку на любой стадии, нажимая на /cancel"""
     )
 
-    asyncio.create_task(delete_later(msg=msg, time_second=10))
+    asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
