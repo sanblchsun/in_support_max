@@ -1,3 +1,4 @@
 environs
 maxapi==0.9.16
 loguru
+emoji

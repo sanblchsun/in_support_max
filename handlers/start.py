@@ -78,6 +78,7 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
             firma=c[2],
             e_mail=c[3],
             telefon=c[4],
+            message_for_edit=msg,
         )
 
         await event.message.delete()

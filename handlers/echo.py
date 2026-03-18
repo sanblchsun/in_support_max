@@ -9,7 +9,27 @@ from loguru import logger
 from utils.message_manager import delete_later
 
 
-# Эхо хендлер, куда летят текстовые сообщения, в стадии заявки
+@dp.message_created(F.message.body.text.len() < 101, Form.yes_no_save)
+async def action_insert_in_base(event: MessageCreated, context: MemoryContext):
+    msg = await event.message.answer("Сейчас нужно нажать кнопку")
+    asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
+
+
+@dp.message_created(
+    F.message.body.text.len() > 100,
+    Form.full_name,
+    Form.telefon,
+    Form.e_mail,
+    Form.firma,
+)
+async def action_full_name(event: MessageCreated, context: MemoryContext):
+    if len(event.model_dump().get("message").get("body").get("text")) > 100:
+        msg = await event.message.answer("""Разрешено не больше 100 знаков.""")
+        asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=3))
+        return
+
+
+# Эхо хендлер, куда летят текстовые сообщения, в стадии заявки, с вложениями
 @dp.message_created(
     F.message.body.attachments,
     Form.full_name,
@@ -35,7 +55,7 @@ async def any_state(event: MessageCreated, context: MemoryContext):
         logger.debug(
             f"в any_state не обработанное сообщение. Состоняе {state_current} тип {type(state_current)}"
         )
-    asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=3))
+    asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
 
 
 # Эхо хендлер, куда летят ВСЕ сообщения, без стадии заявка
