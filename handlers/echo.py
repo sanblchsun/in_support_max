@@ -23,7 +23,7 @@ async def action_insert_in_base(event: MessageCreated, context: MemoryContext):
     Form.firma,
 )
 async def action_full_name(event: MessageCreated, context: MemoryContext):
-    if len(event.model_dump().get("message").get("body").get("text")) > 100:
+    if len(event.message.body.text) > 100: # type: ignore
         msg = await event.message.answer("""Разрешено не больше 100 знаков.""")
         asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=3))
         return
@@ -62,12 +62,6 @@ async def any_state(event: MessageCreated, context: MemoryContext):
 @dp.message_created()
 async def no_state(event: MessageCreated, context: MemoryContext):
 
-    mid = event.model_dump().get("message").get("body").get("mid")
-    try:
-        await bot.delete_message(message_id=mid)
-    except Exception as e:
-        logger.error(e)
-    await event.message.delete()
     msg = await event.message.answer(
         """Начните заполнять заявку, нажимая на /start .
     Или отмените активную заявку на любой стадии, нажимая на /cancel"""

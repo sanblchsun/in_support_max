@@ -33,15 +33,17 @@ def request_delete_with_data() -> Attachment:
     #     ]
     # )
     buttons = InlineKeyboardBuilder()
-    buttons.add(
+    buttons.row(
         CallbackButton(
             text="отменить заявку и стереть свои данные",
             payload="del_user_data",
-        ),
+        )
+    )
+    buttons.row(
         CallbackButton(
             text="Отмена заявки",
             payload="reject_request",
-        ),
+        )
     )
 
     # return Attachment(type="inline_keyboard", payload=buttons)  # type: ignore

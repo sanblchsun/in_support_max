@@ -36,10 +36,12 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
     chat_id = event.message.recipient.chat_id
     user_id = event.from_user.user_id  # type: ignore
 
-    await set_timeout(event, context, bot, 100)
+    await set_timeout(event, context, bot, 18000)
 
     await context.update_data(
-        dist_url_and_namefile={}, list_photo_path=[], send_yes_no=True
+        dist_url_and_namefile={},
+        list_photo_path=[],
+        send_yes_no=True,
     )
 
     sql = SQLighter("base/db.db")
@@ -47,8 +49,7 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
 
     # отправляем фото
     try:
-        msg0 = await send_photo(chat_id, f"img/supp{random.randint(1,5)}.jpeg")  # type: ignore
-        await add_message(context, msg0)
+        await send_photo(chat_id, f"img/supp{random.randint(1,5)}.jpeg")  # type: ignore
     except FileNotFoundError:
         ...
 
@@ -69,7 +70,8 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
 
         await add_message(context, msg)
 
-        await event.message.answer("Расскажите - что у вас случилось?")
+        msg1 = await event.message.answer("Расскажите - что у вас случилось?")
+        await add_message(context, msg1)
 
         await context.set_state(Form.description)
 
@@ -80,8 +82,6 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
             telefon=c[4],
             message_for_edit=msg,
         )
-
-        await event.message.delete()
 
     # ---------- новый пользователь ----------
 

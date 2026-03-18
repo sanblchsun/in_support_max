@@ -1,11 +1,12 @@
 import asyncio
 import re
 import emoji
+from loguru import logger
 from maxapi import F
 from maxapi.context import MemoryContext
 from maxapi.types import MessageCreated
 from keyboards.inline.buttons import save_person_data
-from utils.message_manager import add_message, delete_later
+from utils.message_manager import add_message, delete_later, delete_messages
 from loader import dp, bot
 from states.forms import Form
 from base.sqlighter import SQLighter
@@ -21,9 +22,7 @@ async def action_create_user_data(event: MessageCreated, context: MemoryContext)
 
 @dp.message_created(F.message.body.text.len() < 101, Form.full_name)
 async def action_full_name(event: MessageCreated, context: MemoryContext):
-    await context.update_data(
-        full_name=event.model_dump().get("message").get("body").get("text")
-    )
+    await context.update_data(full_name=event.message.body.text)
     msg1 = await event.message.answer("Укажите Ваш контактный телефон:")
     await add_message(context=context, message=msg1)
     await context.set_state(Form.telefon)
@@ -31,9 +30,7 @@ async def action_full_name(event: MessageCreated, context: MemoryContext):
 
 @dp.message_created(F.message.body.text.len() < 101, Form.telefon)
 async def action_telefon(event: MessageCreated, context: MemoryContext):
-    await context.update_data(
-        telefon=event.model_dump().get("message").get("body").get("text")
-    )
+    await context.update_data(telefon=event.message.body.text)
     msg1 = await event.message.answer("Укажите Ваш e-mail:")
     await add_message(context=context, message=msg1)
     await context.set_state(Form.e_mail)
@@ -44,16 +41,14 @@ async def action_e_mail(event: MessageCreated, context: MemoryContext):
     if not bool(
         re.search(
             r"^[\w\.\+\-]+\@[\w\.\-]+\.[a-z]{2,7}$",
-            event.model_dump().get("message").get("body").get("text"),
+            event.message.body.text,  # type: ignore
         )
     ):
         msg = await event.message.answer("Недействительный email ✉. Повторите")
         asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
         return
 
-    await context.update_data(
-        e_mail=event.model_dump().get("message").get("body").get("text")
-    )
+    await context.update_data(e_mail=event.message.body.text)
     msg1 = await event.message.answer("От какой компании обращаетесь:")
     await add_message(context=context, message=msg1)
     await context.set_state(Form.firma)
@@ -61,9 +56,7 @@ async def action_e_mail(event: MessageCreated, context: MemoryContext):
 
 @dp.message_created(F.message.body.text.len() < 101, Form.firma)
 async def action_insert_in_firma(event: MessageCreated, context: MemoryContext):
-    await context.update_data(
-        firma=event.model_dump().get("message").get("body").get("text")
-    )
+    await context.update_data(firma=event.message.body.text)
     msg1 = await event.message.answer(
         """Я могу сохранить Ваши данные,
 чтобы в следующий раз их не нужно было вводить при
@@ -118,13 +111,8 @@ async def action_request_to_yes_save(event: MessageCreated, context: MemoryConte
 
 @dp.message_created(F.message.body.text, Form.description)
 async def action_description(event: MessageCreated, context: MemoryContext):
-    html = get_html(
-        description=event.model_dump().get("message").get("body").get("text")
-    )
-    data = await context.get_data()
-    try:
-        await bot.edit_message(
-            text=html,
-            message_id=data["message_for_edit"].model_dump().get("message").get("body").get("text"),
-        )
-    except Exception as e: ...
+    await delete_messages(bot=bot, context=context)
+    await context.update_data(description = event.message.body.text)
+    html = get_html(description=event.message.body.text) # type: ignore
+    await event.message.answer(html)
+
