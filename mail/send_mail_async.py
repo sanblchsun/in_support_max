@@ -24,7 +24,10 @@ def _check_filters(firma_filter_def, firma_def, to_addrs_def, to_addrs1_def):
         if len(firma_filter_def) <= 100:
             for i_pattern in firma_filter_def:
                 if i_pattern.lower() in firma_def.lower():
-                    return [to_addrs_def, to_addrs1_def], f"{to_addrs_def}; {to_addrs1_def}"
+                    return [
+                        to_addrs_def,
+                        to_addrs1_def,
+                    ], f"{to_addrs_def}; {to_addrs1_def}"
         else:
             logging.info("в файле email.ini возможно строка firma_filter = пустая")
     return to_addrs_def, f"{to_addrs_def}"
@@ -44,15 +47,17 @@ async def async_download_file(url: str, dest_path: str):
                 return None
 
 
-async def send_email_with_attachment(e_mail,
-                                     firma,
-                                     full_name,
-                                     cont_telefon,
-                                     description,
-                                     priority,
-                                     message_id,
-                                     http_to_attach=None,
-                                     number_from_1c=''):
+async def send_email_with_attachment(
+    e_mail,
+    firma,
+    full_name,
+    cont_telefon,
+    description,
+    priority,
+    message_id,
+    http_to_attach=None,
+    number_from_1c="",
+):
     """Асинхронная отправка письма с вложениями."""
     val_error = 0
     check_send_bot = False
@@ -89,12 +94,16 @@ async def send_email_with_attachment(e_mail,
         now = datetime.now().time()
         if obj_time_start <= obj_time_end:
             if obj_time_start <= now <= obj_time_end:
-                to_addrs0, msg_To = _check_filters(firma_filter, firma, to_addrs0, to_addrs1)
+                to_addrs0, msg_To = _check_filters(
+                    firma_filter, firma, to_addrs0, to_addrs1
+                )
                 if isinstance(to_addrs0, list):
                     check_send_bot = True
         else:
             if obj_time_start <= now or now <= obj_time_end:
-                to_addrs0, msg_To = _check_filters(firma_filter, firma, to_addrs0, to_addrs1)
+                to_addrs0, msg_To = _check_filters(
+                    firma_filter, firma, to_addrs0, to_addrs1
+                )
                 if isinstance(to_addrs0, list):
                     check_send_bot = True
     except ValueError as e:
@@ -106,7 +115,7 @@ async def send_email_with_attachment(e_mail,
     msg["Sender"] = FROM
     msg["To"] = msg_To
     msg["Reply-To"] = e_mail
-    msg["Subject"] = "Заявка из Телеграмм Бота"
+    msg["Subject"] = "Заявка из MAX Бота"
     msg["Date"] = formatdate(localtime=True)
 
     html = get_html(e_mail, firma, full_name, cont_telefon, description, priority)
@@ -141,7 +150,7 @@ async def send_email_with_attachment(e_mail,
         val_error = 3
     if len(files_list) != 0:
         str1 = str(files_list[0])
-        path = str1[:str1.find('/', str1.find('/')+1)]
+        path = str1[: str1.find("/", str1.find("/") + 1)]
         shutil.rmtree(path, ignore_errors=False, onerror=None)
     return val_error, check_send_bot
 
@@ -174,12 +183,14 @@ def attach_file(msg, filepath):
 
 
 if __name__ == "__main__":
-    asyncio.run(send_email_with_attachment(
-        e_mail="test@test.ru",
-        firma="ООО Ромашка",
-        full_name="Иван Иванов",
-        cont_telefon="89998887766",
-        description="Проверка асинхронной отправки",
-        priority="Низкий",
-        message_id=12345
-    ))
+    asyncio.run(
+        send_email_with_attachment(
+            e_mail="test@test.ru",
+            firma="ООО Ромашка",
+            full_name="Иван Иванов",
+            cont_telefon="89998887766",
+            description="Проверка асинхронной отправки",
+            priority="Низкий",
+            message_id=12345,
+        )
+    )
