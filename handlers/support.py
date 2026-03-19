@@ -5,7 +5,13 @@ from loguru import logger
 from maxapi import F
 from maxapi.context import MemoryContext
 from maxapi.types import MessageCreated
-from keyboards.inline.buttons import save_person_data
+from base.mysqlrequests import write_to_mysql
+from keyboards.inline.buttons import (
+    buttons_priority,
+    save_person_data,
+    send_request_yes_no,
+)
+from mail.email_executor import send_email_in_executor
 from utils.message_manager import add_message, delete_later, delete_messages
 from loader import dp, bot
 from states.forms import Form
@@ -112,7 +118,98 @@ async def action_request_to_yes_save(event: MessageCreated, context: MemoryConte
 @dp.message_created(F.message.body.text, Form.description)
 async def action_description(event: MessageCreated, context: MemoryContext):
     await delete_messages(bot=bot, context=context)
-    await context.update_data(description = event.message.body.text)
-    html = get_html(description=event.message.body.text) # type: ignore
-    await event.message.answer(html)
+    await context.update_data(description=event.message.body.text)
+    html = get_html(description=event.message.body.text)  # type: ignore
+    msg0 = await event.message.answer(html)
+    await context.update_data(message_for_edit=msg0.message.body.mid)
+    msg = await event.message.answer(
+        "Укажите приоритет заявки:", attachments=[buttons_priority()]
+    )
+    await add_message(message=msg, context=context)
+    await context.set_state(Form.priority)
 
+
+async def next_priority(event: MessageCreated, context: MemoryContext):
+    data = await context.get_data()
+    html_request = get_html(description=data["description"], priority=data["priority"])
+    try:
+        await bot.edit_message(
+            text=html_request,
+            message_id=data["message_for_edit"],
+        )
+    except Exception as e:
+        msg1 = await event.message.answer(html_request)
+        await context.update_data(message_for_edit=msg1.message.body.mid)
+    await delete_messages(bot, context)
+    msg = await event.message.answer(
+        emoji.emojize(":envelope: отправить заявку?"),
+        attachments=[send_request_yes_no()],
+    )
+    await add_message(context=context, message=msg)
+    await context.set_state(Form.send_request)
+
+
+@dp.message_callback(F.callback.payload == "low_btn_press", Form.priority)
+async def action_low_btn_press(event: MessageCreated, context: MemoryContext):
+    await context.update_data(priority="Низкий")
+    await next_priority(event=event, context=context)
+
+
+@dp.message_callback(F.callback.payload == "medium_btn_press", Form.priority)
+async def action_medium_btn_press(event: MessageCreated, context: MemoryContext):
+    await context.update_data(priority="Средний")
+    await next_priority(event=event, context=context)
+
+
+@dp.message_callback(F.callback.payload == "high_btn_press", Form.priority)
+async def action_high_btn_press(event: MessageCreated, context: MemoryContext):
+    await context.update_data(priority="Высокий")
+    await next_priority(event=event, context=context)
+
+
+@dp.message_callback(F.callback.payload == "critical_btn_press", Form.priority)
+async def action_critical_btn_press(event: MessageCreated, context: MemoryContext):
+    await context.update_data(priority="Критический")
+    await next_priority(event=event, context=context)
+
+
+@dp.message_callback(F.callback.payload == "send_yes", state=Form.send_request)
+async def action_request_to_support(event: MessageCreated, context: MemoryContext):
+
+    user_id = event.from_user.user_id
+    corrent_state = await context.get_data()
+    await write_to_mysql(
+        e_mail=corrent_state["e_mail"],
+        firma=corrent_state["firma"],
+        full_name=corrent_state["full_name"],
+        cont_telefon=corrent_state["telefon"],
+        description=corrent_state["description"],
+        priority=corrent_state["priority"],
+        message_id=user_id,
+    )
+    msg0 = await event.message.answer("📨 Начинаю отправку заявки.")
+    await add_message(context=context, message=msg0)
+
+    # отправляем email через executor (не блокирует event loop)
+    ident_error, check_send_bot = await send_email_in_executor(
+        full_name=corrent_state["full_name"],
+        e_mail=corrent_state["e_mail"],
+        firma=corrent_state["firma"],
+        cont_telefon=corrent_state["telefon"],
+        description=corrent_state["description"],
+        priority=corrent_state["priority"],
+        message_id=user_id,
+    )
+
+    if ident_error:
+        await event.message.answer(
+            f"Ошибка при отправке заявки: {ident_error}. "
+            f"Что то пошло не так, обратитесь к поставщику продукта"
+        )
+        await delete_messages(bot=bot, context=context)
+    else:
+        await event.message.answer(
+            f"""Заявка отправлена. Номер зарегистрированной заявки придет на контактную почту.
+Чтобы направить еще одну заявку, нажмите /start"""
+        )
+        await delete_messages(bot=bot, context=context)

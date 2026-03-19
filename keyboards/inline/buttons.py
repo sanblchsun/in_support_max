@@ -65,21 +65,6 @@ def attach_yes_no():
     return buttons.as_markup()
 
 
-def send_request_yes_no():
-    buttons = InlineKeyboardBuilder()
-    buttons.row(
-        CallbackButton(
-            text="НЕТ",
-            payload="send_no",
-        ),
-        CallbackButton(
-            text="ДА",
-            payload="send_yes",
-        ),
-    )
-    return buttons.as_markup()
-
-
 def request_or_reject() -> Attachment:
     buttons = InlineKeyboardBuilder()
     buttons.row(
@@ -123,22 +108,45 @@ def save_person_data():
 
 def buttons_priority():
     buttons = InlineKeyboardBuilder()
-    buttons.add(
+    buttons.row(
         CallbackButton(
             text="Низкий",
             payload="low_btn_press",
-        ),
+        )
+    )
+    buttons.row(
         CallbackButton(
             text="средний",
             payload="medium_btn_press",
-        ),
+        )
+    )
+    buttons.row(
         CallbackButton(
             text="высокий",
             payload="high_btn_press",
-        ),
+        )
+    )
+    buttons.row(
         CallbackButton(
             text="критический",
             payload="critical_btn_press",
+        ),
+    )
+    return buttons.as_markup()
+
+
+def send_request_yes_no():
+    buttons = InlineKeyboardBuilder()
+    buttons.row(
+        CallbackButton(
+            text="отказаться",
+            payload="send_no",
+        )
+    )
+    buttons.row(
+        CallbackButton(
+            text="отправить заявку",
+            payload="send_yes",
         ),
     )
     return buttons.as_markup()

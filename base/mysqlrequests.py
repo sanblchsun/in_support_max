@@ -1,5 +1,5 @@
 import datetime
-import logging
+from loguru import logger
 import os
 import sys
 from configparser import ConfigParser
@@ -13,17 +13,17 @@ async def write_to_mysql(
     cont_telefon: str,
     description: str,
     priority: str,
-    message_id: int
+    message_id: int,
 ):
     """Асинхронная запись данных в MySQL"""
 
     # Получаем настройки подключения из mysql.ini
     global conn
     base_path = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(base_path, 'mysql.ini')
+    config_path = os.path.join(base_path, "mysql.ini")
 
     if not os.path.exists(config_path):
-        logging.error('❌ Файл mysql.ini не найден')
+        logger.error("❌ Файл mysql.ini не найден")
         sys.exit(1)
 
     cfg = ConfigParser()
@@ -43,20 +43,26 @@ async def write_to_mysql(
             user=user,
             password=password,
             db=database,
-            autocommit=False
+            autocommit=False,
         )
 
         async with conn.cursor(aiomysql.DictCursor) as cursor:
             # Проверяем наличие пользователя
-            await cursor.execute("SELECT id FROM users WHERE id_telegram=%s", (message_id,))
+            await cursor.execute(
+                "SELECT id FROM users WHERE id_telegram=%s", (message_id,)
+            )
             rows = await cursor.fetchall()
 
             if not rows:
-                await cursor.execute("INSERT INTO users (id_telegram) VALUES (%s)", (message_id,))
-                await cursor.execute("SELECT id FROM users WHERE id_telegram=%s", (message_id,))
+                await cursor.execute(
+                    "INSERT INTO users (id_telegram) VALUES (%s)", (message_id,)
+                )
+                await cursor.execute(
+                    "SELECT id FROM users WHERE id_telegram=%s", (message_id,)
+                )
                 rows = await cursor.fetchall()
 
-            user_id = rows[0]['id']
+            user_id = rows[0]["id"]
 
             # Добавляем заявку
             sql_requests = """
@@ -65,22 +71,27 @@ async def write_to_mysql(
                 VALUES 
                     (%s, %s, %s, %s, %s, %s, %s, %s)
             """
-            await cursor.execute(sql_requests, (
-                user_id,
-                full_name,
-                firma,
-                e_mail,
-                cont_telefon,
-                description,
-                priority,
-                datetime.datetime.now()
-            ))
+            await cursor.execute(
+                sql_requests,
+                (
+                    user_id,
+                    full_name,
+                    firma,
+                    e_mail,
+                    cont_telefon,
+                    description,
+                    priority,
+                    datetime.datetime.now(),
+                ),
+            )
 
             await conn.commit()
-            logging.info(f"✅ Заявка успешно добавлена  в базу для пользователя {message_id}")
+            logger.info(
+                f"✅ Заявка успешно добавлена  в базу для пользователя {message_id}"
+            )
 
     except Exception as e:
-        logging.exception(f"❌ Ошибка при работе с базой данных: {e}")
+        logger.error(f"❌ Ошибка при работе с базой данных MySQL {e}")
     finally:
-        if 'conn' in locals():
+        if "conn" in locals():
             await conn.close()

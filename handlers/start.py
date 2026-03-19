@@ -38,12 +38,6 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
 
     await set_timeout(event, context, bot, 18000)
 
-    await context.update_data(
-        dist_url_and_namefile={},
-        list_photo_path=[],
-        send_yes_no=True,
-    )
-
     sql = SQLighter("base/db.db")
     client = sql.get_client(user_id)
 
