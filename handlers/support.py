@@ -7,6 +7,7 @@ from maxapi.context import MemoryContext
 from maxapi.types import MessageCreated
 from base.mysqlrequests import write_to_mysql
 from keyboards.inline.buttons import (
+    attach_yes_no,
     buttons_priority,
     save_person_data,
     send_request_yes_no,
@@ -146,7 +147,9 @@ async def next_priority(event: MessageCreated, context: MemoryContext):
         attachments=[send_request_yes_no()],
     )
     await add_message(context=context, message=msg)
-    await context.set_state(Form.send_request)
+    msg = await event.message.answer(emoji.emojize(':linked_paperclips:') +
+                                              'Хотите приложить файлы и фотографии?', attachments=[attach_yes_no()])
+    await context.set_state(Form.attach)
 
 
 @dp.message_callback(F.callback.payload == "low_btn_press", Form.priority)
@@ -173,7 +176,16 @@ async def action_critical_btn_press(event: MessageCreated, context: MemoryContex
     await next_priority(event=event, context=context)
 
 
-@dp.message_callback(F.callback.payload == "send_yes", state=Form.send_request)
+@dp.message_callback(F.callback.payload == "attach_yes", Form.attach)
+async def action_request_to_support1(event: MessageCreated, context: MemoryContext):
+    await event.message.answer(emoji.emojize(':linked_paperclips:') +
+                                           "   вложите файл или сделайте фотографию")
+    await context.set_state(Form.attach_yes)
+
+
+
+@dp.message_callback(F.callback.payload == "attach_no", Form.attach)
+@dp.message_callback(F.callback.payload == "send_yes", Form.send_request)
 async def action_request_to_support(event: MessageCreated, context: MemoryContext):
 
     user_id = event.from_user.user_id
