@@ -10,6 +10,7 @@ services:
     command: python app.py
     restart: always
     network_mode: "docker_mysql_default"
-
+    environment:
+      TZ: "Europe/Moscow"
     env_file:
       - ".env"
