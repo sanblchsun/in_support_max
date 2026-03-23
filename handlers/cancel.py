@@ -5,6 +5,7 @@ from base.sqlighter import SQLighter
 from loader import dp, bot
 from maxapi.types import Command, MessageCreated
 from loguru import logger
+from states.forms import Form
 from utils.message_manager import delete_messages
 from utils.timeout_manager import cancel_timeout
 
@@ -35,4 +36,8 @@ async def action_bot_cancel1(event: MessageCreated, context: MemoryContext):
 async def action_del_user_data(event: MessageCreated, context: MemoryContext):
     sql_object = SQLighter("base/db.db")
     sql_object.delete_user_data(event.from_user.user_id)
+    await bot_cancel(event=event, context=context)
+
+@dp.message_callback(F.callback.payload == "send_no", Form.send_request)
+async def action_request_to_support(event: MessageCreated, context: MemoryContext):
     await bot_cancel(event=event, context=context)

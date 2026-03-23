@@ -5,7 +5,7 @@ from loguru import logger
 from maxapi import F
 from maxapi.context import MemoryContext
 from maxapi.types import MessageCreated
-from base.mysqlrequests import write_to_mysql
+from base.mysqlrequests import insert_request_to_mysql
 from keyboards.inline.buttons import (
     attach_yes_no,
     buttons_priority,
@@ -104,7 +104,7 @@ async def action_request_to_yes_save(event: MessageCreated, context: MemoryConte
         current_state["telefon"],
         current_state["e_mail"],
         current_state["firma"],
-    )
+    ) 
     msg1 = await event.message.answer(
         """Спасибо, Ваши данные сохранены и будут автоматически использоваться при подаче всех последующих заявок.
 
@@ -142,11 +142,6 @@ async def next_priority(event: MessageCreated, context: MemoryContext):
         msg1 = await event.message.answer(html_request)
         await context.update_data(message_for_edit=msg1.message.body.mid)
     await delete_messages(bot, context)
-    msg = await event.message.answer(
-        emoji.emojize(":envelope: отправить заявку?"),
-        attachments=[send_request_yes_no()],
-    )
-    await add_message(context=context, message=msg)
     msg = await event.message.answer(emoji.emojize(':linked_paperclips:') +
                                               'Хотите приложить файлы и фотографии?', attachments=[attach_yes_no()])
     await context.set_state(Form.attach)
@@ -178,19 +173,68 @@ async def action_critical_btn_press(event: MessageCreated, context: MemoryContex
 
 @dp.message_callback(F.callback.payload == "attach_yes", Form.attach)
 async def action_request_to_support1(event: MessageCreated, context: MemoryContext):
+    await event.message.delete()
     await event.message.answer(emoji.emojize(':linked_paperclips:') +
                                            "   вложите файл или сделайте фотографию")
     await context.set_state(Form.attach_yes)
+    await context.update_data(dist_url_and_namefile={})
 
+
+@dp.message_created(F.message.body.attachments, Form.attach_yes)
+async def action_attach_yes(event: MessageCreated, context: MemoryContext):
+    await delete_messages(bot=bot, context=context)
+    current_state = await context.get_data()
+    data_dist = current_state.get("dist_url_and_namefile")
+    type_attach = event.message.body.attachments[0].type # type: ignore
+    if type_attach == 'file': # type: ignore
+        doc_size = event.message.body.attachments[0].size # type: ignore
+        file_name = event.message.body.attachments[0].filename # type: ignore
+        if doc_size > 5120000: # type: ignore
+            msg = await event.message.reply("""В заявку вложен файл с недопустимым размером,
+            повторите с файлом менее 5Мб """)
+            await add_message(context=context, message=msg)
+            return
+    elif type_attach == 'image':
+        file_name0 = event.message.body.attachments[0].payload.photo_id # type: ignore
+        try:
+            file_name = f"{str(file_name0)}.webp"
+        except Exception as e:
+            file_name = "file"
+    elif type_attach == "video":
+        file_name = "video.mp4"
+    else: file_name = "file"
+            
+    
+    url_file = event.message.body.attachments[0].payload.url # type: ignore
+    data_dist[file_name] = url_file # type: ignore
+    await context.update_data(dist_url_and_namefile=data_dist)
+    msg = await event.message.answer("Можете вложить еще файлы или отправить заявку.", attachments=[send_request_yes_no()]) 
+    await add_message(context=context, message=msg)
+    
+    
+@dp.message_callback(F.callback.payload == "send_yes", Form.attach_yes)
+async def action_attach_send_request(event: MessageCreated, context: MemoryContext):
+    await context.set_state(Form.send_request)
 
 
 @dp.message_callback(F.callback.payload == "attach_no", Form.attach)
+async def action_attach(event: MessageCreated, context: MemoryContext):
+    await event.message.delete()
+    msg = await event.message.answer(
+        emoji.emojize(":envelope: отправить заявку?"),
+        attachments=[send_request_yes_no()],
+    )
+    await add_message(context=context, message=msg)
+    await context.set_state(Form.send_request)
+    
+
 @dp.message_callback(F.callback.payload == "send_yes", Form.send_request)
 async def action_request_to_support(event: MessageCreated, context: MemoryContext):
 
     user_id = event.from_user.user_id
     corrent_state = await context.get_data()
-    await write_to_mysql(
+
+    await insert_request_to_mysql(
         e_mail=corrent_state["e_mail"],
         firma=corrent_state["firma"],
         full_name=corrent_state["full_name"],
@@ -203,14 +247,15 @@ async def action_request_to_support(event: MessageCreated, context: MemoryContex
     await add_message(context=context, message=msg0)
 
     # отправляем email через executor (не блокирует event loop)
-    ident_error, check_send_bot = await send_email_in_executor(
+    ident_error = await send_email_in_executor(
         full_name=corrent_state["full_name"],
         e_mail=corrent_state["e_mail"],
         firma=corrent_state["firma"],
         cont_telefon=corrent_state["telefon"],
         description=corrent_state["description"],
         priority=corrent_state["priority"],
-        message_id=user_id,
+        user_id=user_id,
+        http_to_attach=corrent_state["dist_url_and_namefile"]
     )
 
     if ident_error:

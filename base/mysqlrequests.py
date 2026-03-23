@@ -1,97 +1,140 @@
-import datetime
-from loguru import logger
-import os
-import sys
-from configparser import ConfigParser
+# db.py
+
+import asyncio
 import aiomysql
+from loguru import logger
+
+pool = None
 
 
-async def write_to_mysql(
-    e_mail: str,
-    firma: str,
-    full_name: str,
-    cont_telefon: str,
-    description: str,
-    priority: str,
-    message_id: int,
+# -----------------------------
+# ИНИЦИАЛИЗАЦИЯ ПУЛА
+# -----------------------------
+async def init_db(
+    host: str,
+    port: int,
+    user: str,
+    password: str,
+    database: str,
 ):
-    """Асинхронная запись данных в MySQL"""
 
-    # Получаем настройки подключения из mysql.ini
-    global conn
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    config_path = os.path.join(base_path, "mysql.ini")
+    global pool
 
-    if not os.path.exists(config_path):
-        logger.error("❌ Файл mysql.ini не найден")
-        sys.exit(1)
+    for attempt in range(5):  # 👈 retry при старте
+        try:
+            pool = await aiomysql.create_pool(
+                host=host,
+                port=port,
+                user=user,
+                password=password,
+                db=database,
+                minsize=1,
+                maxsize=5,
+                autocommit=True,
+            )
 
-    cfg = ConfigParser()
-    cfg.read(config_path)
+            logger.info("✅ Подключение к MySQL установлено")
+            return
 
-    host = cfg.get("connect", "host")
-    port = int(cfg.get("connect", "port"))
-    user = cfg.get("connect", "user")
-    password = cfg.get("connect", "password")
-    database = cfg.get("connect", "database")
+        except Exception as e:
+            logger.error(f"❌ Ошибка подключения к БД (попытка {attempt+1}): {e}")
+            await asyncio.sleep(2)
 
-    # Подключение к БД
-    try:
-        conn = await aiomysql.connect(
-            host=host,
-            port=port,
-            user=user,
-            password=password,
-            db=database,
-            autocommit=False,
+    raise RuntimeError("❌ Не удалось подключиться к MySQL")
+
+
+# -----------------------------
+# ЗАКРЫТИЕ ПУЛА
+# -----------------------------
+async def close_db():
+
+    global pool
+
+    if pool:
+        pool.close()
+        await pool.wait_closed()
+        logger.info("🔌 Пул соединений закрыт")
+
+
+# -----------------------------
+# ВЫПОЛНЕНИЕ ЗАПРОСА (универсально)
+# -----------------------------
+async def execute(query, args=None, fetchone=False, fetchall=False):
+
+    global pool
+
+    for attempt in range(3):  # 👈 retry при падении соединения
+        try:
+            async with pool.acquire() as conn:
+                async with conn.cursor(aiomysql.DictCursor) as cursor:
+
+                    await cursor.execute(query, args or ())
+
+                    if fetchone:
+                        return await cursor.fetchone()
+
+                    if fetchall:
+                        return await cursor.fetchall()
+
+                    return None
+
+        except Exception as e:
+            logger.error(f"DB error (attempt {attempt+1}): {e}")
+            await asyncio.sleep(1)
+
+    raise RuntimeError("❌ Ошибка выполнения SQL после retry")
+
+
+# -----------------------------
+# ВСТАВКА ЗАЯВКИ
+# -----------------------------
+async def insert_request_to_mysql(
+    e_mail,
+    firma,
+    full_name,
+    cont_telefon,
+    description,
+    priority,
+    message_id,
+):
+
+    # 1. получаем / создаём пользователя
+    user = await execute(
+        "SELECT id FROM users WHERE id_telegram=%s",
+        (message_id,),
+        fetchone=True,
+    )
+
+    if not user:
+        await execute(
+            "INSERT INTO users (id_telegram) VALUES (%s)",
+            (message_id,),
         )
 
-        async with conn.cursor(aiomysql.DictCursor) as cursor:
-            # Проверяем наличие пользователя
-            await cursor.execute(
-                "SELECT id FROM users WHERE id_telegram=%s", (message_id,)
-            )
-            rows = await cursor.fetchall()
+        user = await execute(
+            "SELECT id FROM users WHERE id_telegram=%s",
+            (message_id,),
+            fetchone=True,
+        )
 
-            if not rows:
-                await cursor.execute(
-                    "INSERT INTO users (id_telegram) VALUES (%s)", (message_id,)
-                )
-                await cursor.execute(
-                    "SELECT id FROM users WHERE id_telegram=%s", (message_id,)
-                )
-                rows = await cursor.fetchall()
+    user_id = user["id"] # type: ignore
 
-            user_id = rows[0]["id"]
+    # 2. создаём заявку
+    await execute(
+        """
+        INSERT INTO requests 
+        (user_id, full_name, firma, e_mail, telefon, description, priority, date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+        """,
+        (
+            user_id,
+            full_name,
+            firma,
+            e_mail,
+            cont_telefon,
+            description,
+            priority,
+        ),
+    )
 
-            # Добавляем заявку
-            sql_requests = """
-                INSERT INTO requests 
-                    (user_id, full_name, firma, e_mail, telefon, description, priority, date)
-                VALUES 
-                    (%s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            await cursor.execute(
-                sql_requests,
-                (
-                    user_id,
-                    full_name,
-                    firma,
-                    e_mail,
-                    cont_telefon,
-                    description,
-                    priority,
-                    datetime.datetime.now(),
-                ),
-            )
-
-            await conn.commit()
-            logger.info(
-                f"✅ Заявка успешно добавлена  в базу для пользователя {message_id}"
-            )
-
-    except Exception as e:
-        logger.error(f"❌ Ошибка при работе с базой данных MySQL {e}")
-    finally:
-        if "conn" in locals():
-            await conn.close()
+    logger.info(f"✅ Заявка записана в БД для пользователя {message_id}")

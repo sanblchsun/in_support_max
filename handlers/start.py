@@ -22,6 +22,7 @@ async def send_photo(chat_id: int, path: str):
 
 @dp.message_created(Command("start"))
 async def bot_start(event: MessageCreated, context: MemoryContext):
+    
 
     await context.clear()
 

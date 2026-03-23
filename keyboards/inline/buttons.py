@@ -16,22 +16,6 @@ from maxapi.utils.inline_keyboard import InlineKeyboardBuilder
 
 
 def request_delete_with_data() -> Attachment:
-    # buttons = ButtonsPayload(
-    #     buttons=[
-    #         [
-    #             CallbackButton(
-    #                 text="отменить заявку и стереть свои данные",
-    #                 payload="del_user_data",
-    #                 intent=Intent.DEFAULT,
-    #             ),
-    #             CallbackButton(
-    #                 text="Отмена заявки",
-    #                 payload="reject_request",
-    #                 intent=Intent.DEFAULT,
-    #             ),
-    #         ]
-    #     ]
-    # )
     buttons = InlineKeyboardBuilder()
     buttons.row(
         CallbackButton(
@@ -46,7 +30,6 @@ def request_delete_with_data() -> Attachment:
         )
     )
 
-    # return Attachment(type="inline_keyboard", payload=buttons)  # type: ignore
     return buttons.as_markup()
 
 

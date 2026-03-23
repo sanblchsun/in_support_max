@@ -8,7 +8,7 @@ def get_html(e_mail, firma, full_name, cont_telefon, description, priority, numb
 <html>
 <body>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-<p> Поступила из Телеграмм БОТ новая заявка</p>
+<p> Поступила из MAX БОТ новая заявка</p>
 <p> Автор оставил такие данные:</p>
 <p>
 <table style="width: 100%; background: #ffffff; border: 1px
