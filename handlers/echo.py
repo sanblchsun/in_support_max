@@ -3,27 +3,29 @@ import asyncio
 from maxapi import F
 from maxapi.context import MemoryContext
 from maxapi.types import MessageCreated
+from keyboards.inline.buttons import start
 from states.forms import Form
 from loader import dp, bot
 from loguru import logger
 from utils.message_manager import delete_later
 
 
-@dp.message_created(F.message.body.text.len() < 101, Form.yes_no_save)
+@dp.message_created(F.message.body.text.len() < 101, Form.yes_no_save, Form.beginning)
 async def action_insert_in_base(event: MessageCreated, context: MemoryContext):
     msg = await event.message.answer("Сейчас нужно нажать кнопку")
     asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
 
 
 @dp.message_created(
-    F.message.body.text.len() > 100,
+    F.message.body.text.len() > 300,
     Form.full_name,
     Form.telefon,
     Form.e_mail,
     Form.firma,
+    Form.description,
 )
 async def action_full_name(event: MessageCreated, context: MemoryContext):
-    if len(event.message.body.text) > 100: # type: ignore
+    if len(event.message.body.text) > 100:  # type: ignore
         msg = await event.message.answer("""Разрешено не больше 100 знаков.""")
         asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=3))
         return
@@ -36,6 +38,7 @@ async def action_full_name(event: MessageCreated, context: MemoryContext):
     Form.telefon,
     Form.e_mail,
     Form.firma,
+    Form.description,
 )
 async def any_state(event: MessageCreated, context: MemoryContext):
 
@@ -51,6 +54,8 @@ async def any_state(event: MessageCreated, context: MemoryContext):
         msg = await event.message.answer("Вложение ошибочное. Введите ваш e-mail")
     elif state_current == Form.firma:
         msg = await event.message.answer("Вложение ошибочное. Введите ваш e-mail")
+    elif state_current == Form.description:
+        msg = await event.message.answer("Вложение ошибочное. Введите введите текст")
     else:
         logger.debug(
             f"в any_state не обработанное сообщение. Состоняе {state_current} тип {type(state_current)}"
@@ -63,8 +68,7 @@ async def any_state(event: MessageCreated, context: MemoryContext):
 async def no_state(event: MessageCreated, context: MemoryContext):
 
     msg = await event.message.answer(
-        """Начните заполнять заявку, нажимая на /start .
-    Или отмените активную заявку на любой стадии, нажимая на /cancel"""
+        """Начните заполнять заявку, нажимая на /start .""", attachments=[start()]
     )
 
     asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))

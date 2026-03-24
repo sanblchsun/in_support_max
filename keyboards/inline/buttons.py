@@ -133,3 +133,9 @@ def send_request_yes_no():
         ),
     )
     return buttons.as_markup()
+
+
+def start():
+    buttons = InlineKeyboardBuilder()
+    buttons.row(MessageButton(text="/start"))
+    return buttons.as_markup()

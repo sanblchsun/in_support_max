@@ -22,7 +22,6 @@ async def send_photo(chat_id: int, path: str):
 
 @dp.message_created(Command("start"))
 async def bot_start(event: MessageCreated, context: MemoryContext):
-    
 
     await context.clear()
 
@@ -82,7 +81,7 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
 
     else:
         msg1 = await event.message.answer(
-            """Уважаемый пользователь, вас приветствует ТГ-бот ИИС!
+            """Уважаемый пользователь, вас приветствует MAX-бот ИИС!
 
 Прошу Вас ответить на несколько вопросов,
 которые мне необходимо задать для отправки
