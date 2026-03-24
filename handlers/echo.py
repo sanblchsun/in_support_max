@@ -10,9 +10,18 @@ from loguru import logger
 from utils.message_manager import delete_later
 
 
-@dp.message_created(F.message.body.text.len() < 101, Form.yes_no_save, Form.beginning)
+@dp.message_created(F.message.body.text, Form.yes_no_save, Form.beginning)
 async def action_insert_in_base(event: MessageCreated, context: MemoryContext):
     msg = await event.message.answer("Сейчас нужно нажать кнопку")
+    asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
+
+
+@dp.message_created(F.message.body.text, Form.attach_yes)
+async def action_attach_yes(event: MessageCreated, context: MemoryContext):
+    msg = await event.message.answer(
+        """Ошибочно набран текст, 
+вложите файл или сделайте фото"""
+    )
     asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
 
 
@@ -39,6 +48,7 @@ async def action_full_name(event: MessageCreated, context: MemoryContext):
     Form.e_mail,
     Form.firma,
     Form.description,
+    Form.priority,
 )
 async def any_state(event: MessageCreated, context: MemoryContext):
 
@@ -55,11 +65,19 @@ async def any_state(event: MessageCreated, context: MemoryContext):
     elif state_current == Form.firma:
         msg = await event.message.answer("Вложение ошибочное. Введите ваш e-mail")
     elif state_current == Form.description:
-        msg = await event.message.answer("Вложение ошибочное. Введите введите текст")
+        msg = await event.message.answer("Вложение ошибочное. Введите текст")
+    elif state_current == Form.priority:
+        msg = await event.message.answer("Ошибочное вложение, нажмите кнопку")
     else:
         logger.debug(
             f"в any_state не обработанное сообщение. Состоняе {state_current} тип {type(state_current)}"
         )
+    asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
+
+
+@dp.message_created(F.message.body.text, Form.priority)
+async def action_priority(event: MessageCreated, context: MemoryContext):
+    msg = await event.message.answer("Ошибочно введен текст, нажмите кнопку")
     asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
 
 
