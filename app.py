@@ -11,25 +11,19 @@ import handlers
 
 
 async def on_startup():
-    host = config.HOST
-    port = config.PORT
-    user = config.USER
-    password = config.PASSWORD
-    database = config.DATABASE
     logger.info("Запуск БОТа")
-    await asyncio.sleep(10)
     await bot.delete_webhook()
     logger.info("Бот запущен")
     logger.info(
         f"""Параметры подключения к mysql:
-                {config.USER}@{config.HOST}"""
+                {config.DB_USER}@{config.DB_HOST}"""
     )
     await init_db(
-        host=host,
-        port=port,
-        user=user,
-        password=password,
-        database=database,
+        host=config.DB_HOST,
+        port=config.DB_PORT,
+        user=config.DB_USER,
+        password=config.DB_PASSWORD,
+        database=config.DB_DATABASE,
     )
     await dp.start_polling(bot)
 

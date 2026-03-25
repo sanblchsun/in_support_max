@@ -82,14 +82,15 @@ async def action_insert_in_firma(event: MessageCreated, context: MemoryContext):
 async def action_request_to_no_save(event: MessageCreated, context: MemoryContext):
     try:
         await event.message.delete()
-    except Exception as e : ...
+    except Exception as e:
+        ...
     msg1 = await event.message.answer(
-                """Отказ от сохранения.
+        """Отказ от сохранения.
 
 Вы можете продолжать заполнять заявку.
 
 Расскажите, что у вас случилось?"""
-        )
+    )
     await add_message(context=context, message=msg1)
     await context.set_state(Form.description)
 
@@ -118,7 +119,9 @@ async def action_request_to_yes_save(event: MessageCreated, context: MemoryConte
     await context.set_state(Form.description)
 
 
-@dp.message_created(F.message.body.text, F.message.body.text.len() < 101, Form.description)
+@dp.message_created(
+    F.message.body.text, F.message.body.text.len() < 101, Form.description
+)
 async def action_description(event: MessageCreated, context: MemoryContext):
     await delete_messages(bot=bot, context=context)
     await context.update_data(description=event.message.body.text)
@@ -179,7 +182,8 @@ async def action_critical_btn_press(event: MessageCreated, context: MemoryContex
 async def action_request_to_support1(event: MessageCreated, context: MemoryContext):
     try:
         await event.message.delete()
-    except Exception as e: ...
+    except Exception as e:
+        ...
     await event.message.answer(
         emoji.emojize(":linked_paperclips:") + "   вложите файл или сделайте фотографию"
     )
@@ -209,7 +213,18 @@ async def action_attach_yes(event: MessageCreated, context: MemoryContext):
         except Exception as e:
             file_name = "file"
     elif type_attach == "video":
-        file_name = "video.mp4"
+        msg1 = await event.message.answer(
+            """Пока нельзя вкладывать видео файлы,
+нажимая 'Фото или видео'.
+Вставляйте видео файлы как 'Файл'."""
+        )
+        await delete_later(msg=msg1, bot=bot, time_second=10)
+        msg2 = await event.message.answer(
+            "Можете вложить еще файлы или отправить заявку.",
+            attachments=[send_request_yes_no()],
+        )
+        await add_message(context=context, message=msg2)
+        return
     else:
         file_name = "file"
 
@@ -232,7 +247,8 @@ async def action_attach_send_request(event: MessageCreated, context: MemoryConte
 async def action_attach(event: MessageCreated, context: MemoryContext):
     try:
         await event.message.delete()
-    except Exception as e: ...
+    except Exception as e:
+        ...
     msg = await event.message.answer(
         emoji.emojize(":envelope: отправить заявку?"),
         attachments=[send_request_yes_no()],
