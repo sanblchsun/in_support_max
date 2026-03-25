@@ -11,7 +11,13 @@ import handlers
 
 
 async def on_startup():
+    host = config.HOST
+    port = config.PORT
+    user = config.USER
+    password = config.PASSWORD
+    database = config.DATABASE
     logger.info("Запуск БОТа")
+    await asyncio.sleep(10)
     await bot.delete_webhook()
     logger.info("Бот запущен")
     logger.info(
@@ -19,11 +25,11 @@ async def on_startup():
                 {config.USER}@{config.HOST}"""
     )
     await init_db(
-        host=config.HOST,
-        port=config.PORT,
-        user=config.USER,
-        password=config.PASSWORD,
-        database=config.DATABASE,
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        database=database,
     )
     await dp.start_polling(bot)
 
