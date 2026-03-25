@@ -9,7 +9,7 @@ services:
       - .:/src
     command: python app.py
     restart: always
-    network_mode: "docker_mysql_default"
+    network_mode: "mysql_network_max"
     environment:
       TZ: "Europe/Moscow"
     env_file:
