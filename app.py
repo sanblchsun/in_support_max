@@ -14,13 +14,13 @@ async def on_startup():
     logger.info("Запуск БОТа")
     await bot.delete_webhook()
     logger.info("Бот запущен")
-    # await init_db(
-    #     host=config.HOST,
-    #     port=config.PORT,
-    #     user=config.USER,
-    #     password=config.PASSWORD,
-    #     database=config.DATABASE,
-    # )
+    await init_db(
+        host=config.HOST,
+        port=config.PORT,
+        user=config.USER,
+        password=config.PASSWORD,
+        database=config.DATABASE,
+    )
     await dp.start_polling(bot)
     
 async def on_shutdown():

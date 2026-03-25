@@ -10,7 +10,13 @@ from loguru import logger
 from utils.message_manager import delete_later
 
 
-@dp.message_created(F.message.body.text, Form.yes_no_save, Form.beginning)
+@dp.message_created(
+    F.message.body.text,
+    Form.yes_no_save,
+    Form.beginning,
+    Form.attach,
+    Form.send_request,
+)
 async def action_insert_in_base(event: MessageCreated, context: MemoryContext):
     msg = await event.message.answer("Сейчас нужно нажать кнопку")
     asyncio.create_task(delete_later(bot=bot, msg=msg, time_second=10))
@@ -49,6 +55,8 @@ async def action_full_name(event: MessageCreated, context: MemoryContext):
     Form.firma,
     Form.description,
     Form.priority,
+    Form.attach,
+    Form.send_request,
 )
 async def any_state(event: MessageCreated, context: MemoryContext):
 
@@ -66,7 +74,11 @@ async def any_state(event: MessageCreated, context: MemoryContext):
         msg = await event.message.answer("Вложение ошибочное. Введите ваш e-mail")
     elif state_current == Form.description:
         msg = await event.message.answer("Вложение ошибочное. Введите текст")
-    elif state_current == Form.priority:
+    elif (
+        state_current == Form.priority
+        or state_current == Form.attach
+        or state_current == Form.send_request
+    ):
         msg = await event.message.answer("Ошибочное вложение, нажмите кнопку")
     else:
         logger.debug(

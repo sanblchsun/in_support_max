@@ -96,6 +96,7 @@ async def action_request_to_no_save(event: MessageCreated, context: MemoryContex
 
 @dp.message_callback(F.callback.payload == "save_yes", Form.yes_no_save)
 async def action_request_to_yes_save(event: MessageCreated, context: MemoryContext):
+    await event.message.delete()
     sql_object = SQLighter("base/db.db")
     current_state = await context.get_data()
     user_id = event.from_user.user_id
@@ -183,7 +184,6 @@ async def action_request_to_support1(event: MessageCreated, context: MemoryConte
         emoji.emojize(":linked_paperclips:") + "   вложите файл или сделайте фотографию"
     )
     await context.set_state(Form.attach_yes)
-    await context.update_data(dist_url_and_namefile={})
 
 
 @dp.message_created(F.message.body.attachments, Form.attach_yes)
@@ -247,15 +247,15 @@ async def action_request_to_support(event: MessageCreated, context: MemoryContex
     user_id = event.from_user.user_id
     corrent_state = await context.get_data()
 
-    # await insert_request_to_mysql(
-    #     e_mail=corrent_state["e_mail"],
-    #     firma=corrent_state["firma"],
-    #     full_name=corrent_state["full_name"],
-    #     cont_telefon=corrent_state["telefon"],
-    #     description=corrent_state["description"],
-    #     priority=corrent_state["priority"],
-    #     message_id=user_id,
-    # )
+    await insert_request_to_mysql(
+        e_mail=corrent_state["e_mail"],
+        firma=corrent_state["firma"],
+        full_name=corrent_state["full_name"],
+        cont_telefon=corrent_state["telefon"],
+        description=corrent_state["description"],
+        priority=corrent_state["priority"],
+        message_id=user_id,
+    )
     msg0 = await event.message.answer("📨 Начинаю отправку заявки.")
     await add_message(context=context, message=msg0)
 
@@ -283,3 +283,4 @@ async def action_request_to_support(event: MessageCreated, context: MemoryContex
 Чтобы направить еще одну заявку, нажмите /start"""
         )
         await delete_messages(bot=bot, context=context)
+    await context.clear()

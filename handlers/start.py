@@ -8,7 +8,7 @@ from loader import dp, bot
 from utils.timeout_manager import set_timeout
 from utils.message_manager import add_message
 from keyboards.inline.buttons import request_delete_with_data, request_or_reject
-from maxapi.types import Command, MessageCreated
+from maxapi.types import CommandStart, MessageCreated
 from maxapi.types import InputMedia
 from loguru import logger
 
@@ -20,9 +20,11 @@ async def send_photo(chat_id: int, path: str):
     return await bot.send_message(chat_id=chat_id, attachments=[photo])
 
 
-@dp.message_created(Command("start"))
+@dp.message_created(CommandStart())
 async def bot_start(event: MessageCreated, context: MemoryContext):
-
+    current_state = await context.get_state()
+    if current_state:
+        return
     await context.clear()
 
     await context.set_state(Form.beginning)
@@ -91,3 +93,5 @@ async def bot_start(event: MessageCreated, context: MemoryContext):
 
         await add_message(context, msg1)
         await context.set_state(Form.beginning)
+
+    await context.update_data(dist_url_and_namefile={})
