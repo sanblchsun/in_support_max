@@ -7,8 +7,8 @@ from base.sqlighter import SQLighter
 from loader import dp, bot
 from utils.timeout_manager import set_timeout
 from utils.message_manager import add_message
-from keyboards.inline.buttons import request_delete_with_data, request_or_reject
-from maxapi.types import CommandStart, MessageCreated
+from keyboards.inline.buttons import request_delete_with_data, request_or_reject, start
+from maxapi.types import BotStarted, CommandStart, MessageCreated
 from maxapi.types import InputMedia
 from loguru import logger
 
@@ -18,6 +18,19 @@ from states.forms import Form
 async def send_photo(chat_id: int, path: str):
     photo = InputMedia(path)
     return await bot.send_message(chat_id=chat_id, attachments=[photo])
+
+
+@dp.bot_started()
+async def bot_started(event: BotStarted):
+    await bot.send_message(
+        chat_id=event.chat_id,
+        text="""Я - бот ИИС. Сейчас я помогу Вам отправить заявку в техническую поддержку ИИС.
+
+Всё очень просто: нужно нажать /start в меню,
+оставить свои контакты (которые я умею запоминать для вашего удобства),
+рассказать мне что у вас случилось и ожидать обратной связи от нашей тех.поддержки.
+Начнем?""", attachments=[start()]
+    )
 
 
 @dp.message_created(CommandStart())
