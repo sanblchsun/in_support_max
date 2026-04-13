@@ -5,3 +5,4 @@ emoji
 aiomysql
 aiosmtplib
 requests
+cryptography
