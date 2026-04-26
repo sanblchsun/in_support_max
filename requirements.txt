@@ -5,4 +5,4 @@ emoji
 aiomysql
 aiosmtplib
 requests
-cryptography
+cryptography==46.0.7
